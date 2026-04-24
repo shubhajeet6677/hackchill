@@ -1,19 +1,27 @@
-import OpenAI from 'openai';
+import axios from 'axios';
 import { ENV } from '../config/env';
-import { LlmChatRequest, LlmChatResponse } from '../types/llm';
+import { MidiJson } from '../types/midi';
+import { LlmChatResponse } from '../types/llm';
 
-const openai = new OpenAI({
-  apiKey: ENV.OPENAI_API_KEY,
-  baseURL: ENV.OPENAI_BASE_URL,
-});
+export class LlmService {
+  public async chat(
+    message: string,
+    history: { role: 'user' | 'assistant'; content: string }[],
+    requested_format: 'text' | 'midi_json' = 'text',
+    model?: string
+  ): Promise<LlmChatResponse> {
+    if (!ENV.LLM_API_KEY) {
+      const error = new Error('LLM API Key missing');
+      (error as any).status = 401;
+      throw error;
+    }
 
-export const chat = async (params: LlmChatRequest): Promise<LlmChatResponse> => {
-  const { message, history, requested_format, model } = params;
+    const apiUrl = `${ENV.LLM_BASE_URL}/chat/completions`;
+    const targetModel = model || ENV.LLM_MODEL;
 
-  let systemPrompt = "You are a helpful music assistant.";
-  
-  if (requested_format === 'midi_json') {
-    systemPrompt = `You are a MIDI music assistant. Generate a short musical phrase in JSON MIDI-style format.
+    let systemPrompt = '';
+    if (requested_format === 'midi_json') {
+      systemPrompt = `You are a MIDI music assistant. The user wants a short musical phrase in JSON MIDI-style format.
 Export as:
 {
   "format": "midi_json",
@@ -27,46 +35,65 @@ Export as:
     }
   ]
 }
-Do not include any extra text; only return valid JSON.`;
-  }
-
-  const messages: any[] = [
-    { role: 'system', content: systemPrompt },
-    ...history,
-    { role: 'user', content: message }
-  ];
-
-  try {
-    const response = await openai.chat.completions.create({
-      model: model || ENV.OPENAI_MODEL,
-      messages,
-      response_format: requested_format === 'midi_json' ? { type: 'json_object' } : undefined,
-    });
-
-    const reply = response.choices[0].message.content || '';
-    
-    if (requested_format === 'midi_json') {
-      try {
-        const midi = JSON.parse(reply);
-        return {
-          reply: "Here is your generated MIDI music.",
-          midi,
-          usage: response.usage,
-        };
-      } catch (parseError) {
-        return {
-          reply: reply,
-          usage: response.usage,
-        };
-      }
+Do not include any extra text; only return valid JSON. Do not add explanations or comments.`;
+    } else {
+      systemPrompt = 'You are a helpful assistant for HackChill, an event about music and technology.';
     }
 
-    return {
-      reply,
-      usage: response.usage,
-    };
-  } catch (error: any) {
-    console.error('LLM Service Error:', error);
-    throw new Error('Failed to generate response from LLM');
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...history.map(h => ({ role: h.role, content: h.content })),
+      { role: 'user', content: message },
+    ];
+
+    try {
+      const response = await axios.post(
+        apiUrl,
+        {
+          model: targetModel,
+          messages,
+          temperature: 0.7,
+          max_tokens: 1000,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${ENV.LLM_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      const rawContent = response.data.choices[0].message.content;
+      const usage = response.data.usage;
+
+      if (requested_format === 'midi_json') {
+        try {
+          const jsonStr = rawContent.replace(/```json/g, '').replace(/```/g, '').trim();
+          const parsedJson = JSON.parse(jsonStr);
+
+          if (parsedJson.format === 'midi_json' && Array.isArray(parsedJson.tracks)) {
+            return {
+              reply: rawContent,
+              midi: parsedJson as MidiJson,
+              usage,
+            };
+          }
+        } catch (e) {
+          // Parsing failed or invalid schema, fallback to text response
+        }
+      }
+
+      return {
+        reply: rawContent,
+        usage,
+      };
+    } catch (error: any) {
+      console.error('LLM Service Error:', error.response?.data || error.message);
+      const newError = new Error('Failed to communicate with LLM API');
+      (newError as any).status = 500;
+      throw newError;
+    }
   }
-};
+}
+
+export const llmService = new LlmService();

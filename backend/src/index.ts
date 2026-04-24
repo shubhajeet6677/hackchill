@@ -28,5 +28,5 @@ app.use(errorHandler);
 // Start Server
 app.listen(ENV.PORT, () => {
   console.log(`Server is running on port ${ENV.PORT}`);
-  console.log(`OpenAI Model: ${ENV.OPENAI_MODEL}`);
+  console.log(`LLM Model: ${ENV.LLM_MODEL}`);
 });
