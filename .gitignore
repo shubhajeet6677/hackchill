@@ -25,3 +25,8 @@ output/
 # OS
 .DS_Store
 Thumbs.db
+
+node_modules/
+.npm/
+dist/
+
