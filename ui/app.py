@@ -63,7 +63,9 @@ def compose():
                 'success': True,
                 'summary': summary,
                 'filename': filename,
-                'full_path': midi_path
+                'full_path': midi_path,
+                'genre': genre,
+                'bpm': tempo
             })
         else:
             return jsonify({

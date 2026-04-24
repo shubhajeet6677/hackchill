@@ -186,6 +186,12 @@ GENRE_PROFILES = {
         "gm_program": 88,      # Pad
         "preferred_octave": 4,
     },
+    "hiphop": {
+        "chord_style": "comping",
+        "rhythm_density": 0.9,
+        "gm_program": 0,       # Piano
+        "preferred_octave": 3,
+    },
 }
 
 # -- Instrument -> General MIDI Program Number ------------------------------
@@ -278,6 +284,7 @@ def detect_genre(prompt: str, genre_hint: str = "") -> str:
         "electronic": ["electronic", "synth", "edm", "techno", "house"],
         "folk":       ["folk", "acoustic", "country"],
         "ambient":    ["ambient", "atmospheric", "cinematic", "meditation"],
+        "hiphop":     ["hiphop", "rap", "trap", "urban", "beat"],
     }
     for genre, keywords in genre_keywords.items():
         for kw in keywords:

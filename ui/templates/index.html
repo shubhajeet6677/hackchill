@@ -2,691 +2,551 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🎵 AI Music Studio</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SONIC.AI | Music Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #8b5cf6;
-            --primary-hover: #7c3aed;
-            --bg: #0f0f1a;
-            --card: rgba(255, 255, 255, 0.08);
-            --card-border: rgba(255, 255, 255, 0.12);
-            --text: #f1f5f9;
+            --bg-color: #0a0d1a;
+            --accent-color: #00e87b;
+            --accent-gradient: linear-gradient(90deg, #00e87b 0%, #00c896 100%);
+            --card-bg: rgba(255, 255, 255, 0.04);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-color: #ffffff;
             --text-muted: #94a3b8;
-            --accent: #a78bfa;
-            --glow: rgba(139, 92, 246, 0.4);
+            --sidebar-width: 260px;
+            --nav-height: 64px;
+            --chord-root: #00e87b;
+            --chord-dominant: #00d2ff;
+            --chord-relative: #a855f7;
+            --chord-subdominant: #fbbf24;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        html, body {
-            height: 100%;
-            width: 100%;
-            overflow: hidden;
-        }
-
         body {
             font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            position: relative;
-        }
-
-        .wave-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            height: 100vh;
+            width: 100vw;
             overflow: hidden;
-            pointer-events: none;
-        }
-
-        .wave {
-            position: absolute;
-            width: 200%;
-            height: 200%;
-            top: -50%;
-            left: -50%;
-            background: radial-gradient(ellipse at center, transparent 0%, var(--bg) 70%);
-        }
-
-        .wave::before,
-        .wave::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: repeating-linear-gradient(
-                90deg,
-                transparent,
-                transparent 80px,
-                rgba(139, 92, 246, 0.03) 80px,
-                rgba(139, 92, 246, 0.03) 160px
-            );
-            animation: waveMove 20s linear infinite;
-        }
-
-        .wave::after {
-            background: repeating-linear-gradient(
-                0deg,
-                transparent,
-                transparent 80px,
-                rgba(167, 139, 250, 0.02) 80px,
-                rgba(167, 139, 250, 0.02) 160px
-            );
-            animation: waveMove 15s linear infinite reverse;
-        }
-
-        @keyframes waveMove {
-            0% { transform: translate(0, 0) rotate(0deg); }
-            25% { transform: translate(2%, 2%) rotate(1deg); }
-            50% { transform: translate(0, 4%) rotate(0deg); }
-            75% { transform: translate(-2%, 2%) rotate(-1deg); }
-            100% { transform: translate(0, 0) rotate(0deg); }
-        }
-
-        .orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.5;
-            animation: float 8s ease-in-out infinite;
-        }
-
-        .orb-1 {
-            width: 40vw;
-            height: 40vw;
-            max-width: 500px;
-            max-height: 500px;
-            background: #7c3aed;
-            top: -10%;
-            left: -10%;
-            animation-delay: 0s;
-        }
-
-        .orb-2 {
-            width: 35vw;
-            height: 35vw;
-            max-width: 400px;
-            max-height: 400px;
-            background: #4f46e5;
-            bottom: -5%;
-            right: -5%;
-            animation-delay: -4s;
-        }
-
-        .orb-3 {
-            width: 25vw;
-            height: 25vw;
-            max-width: 300px;
-            max-height: 300px;
-            background: #a855f7;
-            top: 40%;
-            left: 55%;
-            animation-delay: -2s;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(3vw, -3vw) scale(1.05); }
-            66% { transform: translate(-2vw, 2vw) scale(0.95); }
-        }
-
-        .main-content {
-            position: relative;
-            z-index: 1;
-            height: 100%;
-            width: 100%;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+        }
+
+        /* --- Top Navigation --- */
+        nav {
+            height: var(--nav-height);
+            border-bottom: 0.5px solid var(--border-color);
+            display: flex;
             align-items: center;
-            padding: 16px;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 800px;
-            max-height: 95vh;
-            overflow-y: auto;
-            background: var(--card);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--card-border);
-            padding: clamp(20px, 4vw, 48px);
-            border-radius: 24px;
-            box-shadow:
-                0 25px 50px -12px rgba(0, 0, 0, 0.6),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .container::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .container::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .container::-webkit-scrollbar-thumb {
-            background: var(--card-border);
-            border-radius: 3px;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(40px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: clamp(20px, 4vw, 36px);
-        }
-
-        h1 {
-            font-size: clamp(1.8rem, 6vw, 3.5rem);
-            font-weight: 900;
-            background: linear-gradient(135deg, #a78bfa 0%, #818cf8 50%, #c084fc 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 60px var(--glow);
-            margin-bottom: 8px;
-        }
-
-        p.subtitle {
-            color: var(--text-muted);
-            font-size: clamp(0.9rem, 2vw, 1.1rem);
-        }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--card-border);
-            border-radius: 20px;
-            padding: clamp(16px, 3vw, 28px);
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .glass-card:hover {
-            border-color: rgba(139, 92, 246, 0.3);
-            box-shadow: 0 0 30px rgba(139, 92, 246, 0.1);
-        }
-
-        .form-group { margin-bottom: 16px; }
-        .form-group:last-child { margin-bottom: 0; }
-
-        label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 10px;
-            font-size: clamp(0.85rem, 1.5vw, 0.95rem);
-            color: var(--text);
-        }
-
-        .section-title {
-            font-size: clamp(0.7rem, 1.2vw, 0.85rem);
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--accent);
-            margin-bottom: 14px;
-            font-weight: 700;
-        }
-
-        input[type="text"],
-        input[type="number"] {
-            width: 100%;
-            padding: clamp(10px, 2vw, 14px) clamp(12px, 2vw, 18px);
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            font-size: clamp(0.9rem, 1.8vw, 1rem);
-            color: var(--text);
-            transition: all 0.2s;
-            outline: none;
-        }
-
-        input[type="text"]:focus,
-        input[type="number"]:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px var(--glow);
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        input[type="text"]::placeholder { color: var(--text-muted); }
-
-        .slider-container { margin-bottom: 16px; }
-
-        .slider-header {
-            display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
+            padding: 0 24px;
+            z-index: 100;
         }
 
-        .slider-header label {
-            margin-bottom: 0;
+        .nav-left { display: flex; align-items: center; gap: 8px; }
+        .logo-icon { width: 24px; height: 24px; fill: var(--accent-color); }
+        .logo-text { font-weight: 900; font-size: 1.1rem; letter-spacing: -0.5px; }
+        .logo-text span { color: var(--text-muted); font-weight: 400; margin-left: 4px; }
+
+        .nav-center {
+            display: flex;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px;
+            border-radius: 100px;
+            gap: 4px;
+        }
+        .nav-tab {
+            padding: 6px 20px;
+            border-radius: 100px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .nav-tab.active { background: var(--card-bg); color: var(--text-color); }
+        .nav-tab:hover:not(.active) { color: var(--text-color); }
+
+        .nav-right { display: flex; align-items: center; }
+        .user-avatar {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: var(--accent-gradient);
+            border: 2px solid var(--border-color);
         }
 
-        .slider-value {
-            background: var(--primary);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: clamp(0.75rem, 1.2vw, 0.85rem);
-            font-weight: 700;
-            color: white;
-            min-width: 50px;
-            text-align: center;
+        /* --- Main Layout --- */
+        .app-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
         }
+
+        /* --- Sidebar --- */
+        aside {
+            width: var(--sidebar-width);
+            border-right: 0.5px solid var(--border-color);
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .sidebar-section { display: flex; flex-direction: column; gap: 16px; }
+        .section-label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* Sliders */
+        .slider-group { display: flex; flex-direction: column; gap: 12px; }
+        .slider-header { display: flex; justify-content: space-between; align-items: center; }
+        .slider-header label { font-size: 0.85rem; font-weight: 500; }
+        .slider-value { font-size: 0.85rem; font-weight: 700; color: var(--accent-color); }
 
         input[type="range"] {
             -webkit-appearance: none;
             width: 100%;
-            height: 8px;
+            height: 4px;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
+            border-radius: 2px;
             outline: none;
-            cursor: pointer;
         }
-
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: clamp(20px, 3vw, 28px);
-            height: clamp(20px, 3vw, 28px);
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            width: 16px; height: 16px;
             border-radius: 50%;
+            background: var(--accent-color);
             cursor: pointer;
-            box-shadow: 0 4px 15px var(--glow);
-            transition: transform 0.2s;
+            box-shadow: 0 0 10px var(--accent-color);
+            border: 2px solid var(--bg-color);
         }
 
-        input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.15);
-        }
-
-        input[type="range"]::-moz-range-thumb {
-            width: clamp(20px, 3vw, 28px);
-            height: clamp(20px, 3vw, 28px);
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            border-radius: 50%;
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 4px 15px var(--glow);
-        }
-
-        .radio-group {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-            gap: 8px;
-        }
-
-        .radio-item { position: relative; }
-        .radio-item input {
-            position: absolute;
-            opacity: 0;
-            cursor: pointer;
-        }
-
-        .radio-label {
-            display: block;
-            padding: clamp(8px, 1.5vw, 12px) 4px;
-            text-align: center;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid transparent;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: clamp(0.75rem, 1.3vw, 0.9rem);
-            font-weight: 600;
-            transition: all 0.25s ease;
-        }
-
-        .radio-item input:checked + .radio-label {
-            background: rgba(139, 92, 246, 0.2);
-            border-color: var(--primary);
-            color: var(--accent);
-            box-shadow: 0 0 20px var(--glow);
-        }
-
-        .radio-label:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-        }
-
-        button {
-            width: 100%;
-            padding: clamp(14px, 2.5vw, 18px);
-            background: linear-gradient(135deg, var(--primary), #7c3aed);
-            color: white;
-            border: none;
-            border-radius: 14px;
-            font-size: clamp(1rem, 2vw, 1.15rem);
-            font-weight: 800;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            box-shadow: 0 10px 25px -5px var(--glow);
-        }
-
-        button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 20px 40px -10px var(--glow);
-        }
-
-        button:active { transform: translateY(-1px); }
-
-        button:disabled {
-            background: #374151;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        #result {
-            margin-top: 24px;
-            padding: clamp(16px, 3vw, 28px);
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--card-border);
-            display: none;
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        #result h3 {
-            color: var(--accent);
-            margin-bottom: 10px;
-            font-size: clamp(1rem, 2vw, 1.2rem);
-        }
-
-        #resSummary {
-            color: var(--text-muted);
-            font-size: clamp(0.8rem, 1.5vw, 0.95rem);
-            line-height: 1.7;
-            white-space: pre-wrap;
-            max-height: 40vh;
-            overflow-y: auto;
-        }
-
-        .loading-spinner {
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 0.8s linear infinite;
-            display: none;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .download-btn {
-            display: inline-block;
-            margin-top: 14px;
-            padding: clamp(8px, 1.5vw, 12px) clamp(16px, 3vw, 24px);
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            text-decoration: none;
-            border-radius: 10px;
-            font-weight: 700;
-            font-size: clamp(0.85rem, 1.5vw, 0.95rem);
-            transition: all 0.2s;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-        }
-
-        .download-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
-        }
-
-        .error { color: #f87171; font-weight: 600; }
-
-        .grid-2 {
+        /* Chip Grids */
+        .chip-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 8px;
+        }
+        .chip {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 0.5px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .chip.active {
+            background: rgba(0, 232, 123, 0.1);
+            border-color: var(--accent-color);
+            color: var(--accent-color);
         }
 
-        @media (max-width: 600px) {
-            .main-content {
-                padding: 0;
-                align-items: flex-start;
-            }
-
-            .container {
-                max-height: 100vh;
-                border-radius: 0;
-                padding: 20px 16px;
-            }
-
-            .orb { filter: blur(60px); }
-
-            .orb-1 { width: 60vw; height: 60vw; }
-            .orb-2 { width: 50vw; height: 50vw; }
-            .orb-3 { width: 40vw; height: 40vw; }
+        /* --- Main Content --- */
+        main {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
         }
 
-        @media (min-width: 1200px) {
-            .container {
-                max-width: 900px;
-                padding: 48px;
-            }
+        .card {
+            background: var(--card-bg);
+            border: 0.5px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
-        @media (min-height: 800px) {
-            .main-content {
-                align-items: center;
-            }
+        .card-label {
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .card-label span { color: var(--accent-color); }
+
+        /* Prompt Card */
+        textarea {
+            width: 100%;
+            height: 100px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 0.5px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            color: white;
+            font-family: inherit;
+            font-size: 0.95rem;
+            resize: none;
+            outline: none;
+        }
+        textarea::placeholder { color: var(--text-muted); }
+        textarea:focus { border-color: var(--accent-color); }
+
+        .cta-button {
+            width: 100%;
+            padding: 16px;
+            background: var(--accent-gradient);
+            border: none;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1rem;
+            color: var(--bg-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: transform 0.2s;
+        }
+        .cta-button:hover { transform: translateY(-2px); }
+        .cta-button:active { transform: translateY(0); }
+        .cta-button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Insights Card */
+        .insights-header { display: flex; justify-content: space-between; align-items: center; }
+        .insights-title { font-weight: 700; font-size: 1.1rem; }
+        .badge-pill {
+            padding: 4px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            border: 0.5px solid var(--border-color);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+        .stat-card {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 16px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .stat-label { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); }
+        .stat-value { font-size: 1.2rem; font-weight: 800; }
+
+        .chord-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .chord-chip {
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--bg-color);
+        }
+        .arrow { color: var(--text-muted); font-size: 0.8rem; }
+
+        /* Waveform */
+        .waveform {
+            height: 60px;
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+        }
+        .wave-bar {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            min-height: 4px;
+        }
+        .wave-bar.active { background: var(--accent-color); box-shadow: 0 0 10px var(--accent-color); }
+
+        /* --- Loading Overlay --- */
+        .loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 13, 26, 0.8);
+            display: none; align-items: center; justify-content: center;
+            z-index: 1000; backdrop-filter: blur(4px);
+        }
+        .loader {
+            width: 48px; height: 48px;
+            border: 4px solid var(--accent-color);
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            animation: rotation 1s linear infinite;
+        }
+        @keyframes rotation { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* --- Responsive --- */
+        @media (max-width: 900px) {
+            aside { display: none; }
+            .nav-center { display: none; }
         }
     </style>
 </head>
 <body>
-    <div class="wave-bg">
-        <div class="wave"></div>
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-        <div class="orb orb-3"></div>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loader"></div>
     </div>
 
-    <div class="main-content">
-        <div class="container">
-            <div class="header">
-                <h1>🎵 Music Studio</h1>
-                <p class="subtitle">AI-powered MIDI composition</p>
-            </div>
-
-            <form id="composeForm">
-                <div class="glass-card">
-                    <div class="form-group">
-                        <label>✨ Describe your music</label>
-                        <input type="text" id="prompt" name="prompt" placeholder="e.g. A melancholic rainy day piano melody..." required>
-                    </div>
-                </div>
-
-                <div class="glass-card">
-                    <div class="section-title">🎸 Genre</div>
-                    <div class="radio-group">
-                        <div class="radio-item">
-                            <input type="radio" id="g-pop" name="genre" value="pop" checked>
-                            <label for="g-pop" class="radio-label">Pop</label>
-                        </div>
-                        <div class="radio-item">
-                            <input type="radio" id="g-jazz" name="genre" value="jazz">
-                            <label for="g-jazz" class="radio-label">Jazz</label>
-                        </div>
-                        <div class="radio-item">
-                            <input type="radio" id="g-classical" name="genre" value="classical">
-                            <label for="g-classical" class="radio-label">Classical</label>
-                        </div>
-                        <div class="radio-item">
-                            <input type="radio" id="g-ambient" name="genre" value="ambient">
-                            <label for="g-ambient" class="radio-label">Ambient</label>
-                        </div>
-                        <div class="radio-item">
-                            <input type="radio" id="g-electronic" name="genre" value="electronic">
-                            <label for="g-electronic" class="radio-label">Electronic</label>
-                        </div>
-                        <div class="radio-item">
-                            <input type="radio" id="g-folk" name="genre" value="folk">
-                            <label for="g-folk" class="radio-label">Folk</label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="glass-card">
-                    <div class="section-title">🎹 Instrument</div>
-                    <div class="radio-group">
-                        <div class="radio-item">
-                            <input type="radio" id="i-piano" name="instrument" value="piano" checked>
-                            <label for="i-piano" class="radio-label">Piano</label>
-                        </div>
-                        <div class="radio-item">
-                            <input type="radio" id="i-guitar" name="instrument" value="guitar">
-                            <label for="i-guitar" class="radio-label">Guitar</label>
-                        </div>
-                        <div class="radio-item">
-                            <input type="radio" id="i-synth" name="instrument" value="synth">
-                            <label for="i-synth" class="radio-label">Synth</label>
-                        </div>
-                        <div class="radio-item">
-                            <input type="radio" id="i-strings" name="instrument" value="strings">
-                            <label for="i-strings" class="radio-label">Strings</label>
-                        </div>
-                        <div class="radio-item">
-                            <input type="radio" id="i-brass" name="instrument" value="brass">
-                            <label for="i-brass" class="radio-label">Brass</label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="glass-card">
-                    <div class="section-title">⚙️ Settings</div>
-
-                    <div class="slider-container">
-                        <div class="slider-header">
-                            <label for="tempo">Tempo (BPM)</label>
-                            <span class="slider-value" id="tempoVal">120</span>
-                        </div>
-                        <input type="range" id="tempo" name="tempo" min="60" max="200" value="120" step="5">
-                    </div>
-
-                    <div class="slider-container">
-                        <div class="slider-header">
-                            <label for="bars">Length (Bars)</label>
-                            <span class="slider-value" id="barsVal">8</span>
-                        </div>
-                        <input type="range" id="bars" name="bars" min="4" max="32" value="8" step="4">
-                    </div>
-
-                    <div class="grid-2">
-                        <div class="slider-container">
-                            <div class="slider-header">
-                                <label for="time_num">Beats/Bar</label>
-                                <span class="slider-value" id="timeNumVal">4</span>
-                            </div>
-                            <input type="range" id="time_num" name="time_num" min="2" max="7" value="4" step="1">
-                        </div>
-                        <div class="slider-container">
-                            <div class="slider-header">
-                                <label for="time_den">Beat Value</label>
-                                <span class="slider-value" id="timeDenVal">4</span>
-                            </div>
-                            <input type="range" id="time_den" name="time_den" min="4" max="8" value="4" step="4">
-                        </div>
-                    </div>
-                </div>
-
-                <button type="submit" id="submitBtn">
-                    <span class="loading-spinner" id="spinner"></span>
-                    <span id="btnText">✨ Create Masterpiece</span>
-                </button>
-            </form>
-
-            <div id="result">
-                <h3>🎼 Composition Ready</h3>
-                <p id="resSummary"></p>
-                <div id="downloadLink"></div>
-            </div>
+    <nav>
+        <div class="nav-left">
+            <svg class="logo-icon" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+            <div class="logo-text">SONIC.AI<span>/ Music Studio</span></div>
         </div>
+        <div class="nav-center">
+            <div class="nav-tab active">Compose</div>
+            <div class="nav-tab">Library</div>
+            <div class="nav-tab">Mixer</div>
+            <div class="nav-tab">Export</div>
+        </div>
+        <div class="nav-right">
+            <div class="user-avatar"></div>
+        </div>
+    </nav>
+
+    <div class="app-container">
+        <aside>
+            <div class="sidebar-section">
+                <div class="section-label">Tempo & Timing</div>
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <label>BPM</label>
+                        <span class="slider-value" id="bpmVal">120</span>
+                    </div>
+                    <input type="range" id="bpmSlider" min="60" max="200" value="120" step="5">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <label>Bars</label>
+                        <span class="slider-value" id="barsVal">8</span>
+                    </div>
+                    <input type="range" id="barsSlider" min="4" max="32" value="8" step="4">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <label>Beats/Bar</label>
+                        <span class="slider-value" id="beatsVal">4</span>
+                    </div>
+                    <input type="range" id="beatsSlider" min="2" max="7" value="4" step="1">
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="section-label">Genre</div>
+                <div class="chip-grid" id="genreGrid">
+                    <div class="chip active" data-value="pop">Pop</div>
+                    <div class="chip" data-value="jazz">Jazz</div>
+                    <div class="chip" data-value="classical">Classical</div>
+                    <div class="chip" data-value="ambient">Ambient</div>
+                    <div class="chip" data-value="hiphop">Hip-Hop</div>
+                    <div class="chip" data-value="electronic">Electronic</div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="section-label">Instrument</div>
+                <div class="chip-grid" id="instrumentGrid">
+                    <div class="chip active" data-value="piano">Piano</div>
+                    <div class="chip" data-value="guitar">Guitar</div>
+                    <div class="chip" data-value="synth">Synth</div>
+                    <div class="chip" data-value="strings">Strings</div>
+                </div>
+            </div>
+        </aside>
+
+        <main>
+            <div class="card">
+                <div class="card-label"><span>✦</span> Composition Prompt</div>
+                <textarea id="promptInput" placeholder="Describe the energy, mood, and instruments of your piece..."></textarea>
+                <button class="cta-button" id="composeBtn">✦ Compose Masterpiece</button>
+            </div>
+
+            <div class="card" id="insightsCard">
+                <div class="insights-header">
+                    <div class="insights-title">Composition Insights</div>
+                    <div class="badge-pill" id="insightBadge">READY</div>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Melody notes</div>
+                        <div class="stat-value" id="melodyMetric">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Harmony notes</div>
+                        <div class="stat-value" id="harmonyMetric">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Drum events</div>
+                        <div class="stat-value" id="drumMetric">0</div>
+                    </div>
+                </div>
+
+                <div class="chord-row" id="chordRow">
+                    <!-- Chords will appear here -->
+                </div>
+
+                <div class="waveform" id="waveform">
+                    <!-- Bars will appear here -->
+                </div>
+
+                <div id="downloadArea" style="display: none; margin-top: 10px;">
+                    <a id="downloadBtn" href="#" class="download-btn">📥 Download MIDI File</a>
+                </div>
+            </div>
+        </main>
     </div>
 
     <script>
-        const tempoSlider = document.getElementById('tempo');
-        const tempoVal = document.getElementById('tempoVal');
-        tempoSlider.addEventListener('input', () => { tempoVal.innerText = tempoSlider.value; });
+        // --- State Management ---
+        let state = {
+            bpm: 120,
+            bars: 8,
+            beats: 4,
+            genre: 'pop',
+            instrument: 'piano'
+        };
 
-        const barsSlider = document.getElementById('bars');
+        // --- UI Interactions ---
+        const bpmSlider = document.getElementById('bpmSlider');
+        const bpmVal = document.getElementById('bpmVal');
+        bpmSlider.oninput = () => { state.bpm = bpmSlider.value; bpmVal.innerText = state.bpm; };
+
+        const barsSlider = document.getElementById('barsSlider');
         const barsVal = document.getElementById('barsVal');
-        barsSlider.addEventListener('input', () => { barsVal.innerText = barsSlider.value; });
+        barsSlider.oninput = () => { state.bars = barsSlider.value; barsVal.innerText = state.bars; };
 
-        const timeNumSlider = document.getElementById('time_num');
-        const timeNumVal = document.getElementById('timeNumVal');
-        timeNumSlider.addEventListener('input', () => { timeNumVal.innerText = timeNumSlider.value; });
+        const beatsSlider = document.getElementById('beatsSlider');
+        const beatsVal = document.getElementById('beatsVal');
+        beatsSlider.oninput = () => { state.beats = beatsSlider.value; beatsVal.innerText = state.beats; };
 
-        const timeDenSlider = document.getElementById('time_den');
-        const timeDenVal = document.getElementById('timeDenVal');
-        timeDenSlider.addEventListener('input', () => { timeDenVal.innerText = timeDenSlider.value; });
+        function setupChipGrid(gridId, stateKey) {
+            const grid = document.getElementById(gridId);
+            grid.addEventListener('click', (e) => {
+                if (e.target.classList.contains('chip')) {
+                    grid.querySelector('.chip.active').classList.remove('active');
+                    e.target.classList.add('active');
+                    state[stateKey] = e.target.dataset.value;
+                }
+            });
+        }
+        setupChipGrid('genreGrid', 'genre');
+        setupChipGrid('instrumentGrid', 'instrument');
 
-        document.getElementById('composeForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        // --- Waveform Generation ---
+        const waveform = document.getElementById('waveform');
+        for (let i = 0; i < 40; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'wave-bar';
+            bar.style.height = (Math.random() * 80 + 20) + '%';
+            waveform.appendChild(bar);
+        }
 
-            const btn = document.getElementById('submitBtn');
-            const spinner = document.getElementById('spinner');
-            const btnText = document.getElementById('btnText');
-            const resultDiv = document.getElementById('result');
-            const summaryP = document.getElementById('resSummary');
-            const downloadDiv = document.getElementById('downloadLink');
+        function animateWaveform() {
+            const bars = waveform.querySelectorAll('.wave-bar');
+            bars.forEach(bar => {
+                if (Math.random() > 0.7) {
+                    bar.classList.toggle('active');
+                    bar.style.height = (Math.random() * 80 + 20) + '%';
+                }
+            });
+        }
+        setInterval(animateWaveform, 150);
 
-            btn.disabled = true;
-            spinner.style.display = 'block';
-            btnText.innerText = 'Composing...';
-            resultDiv.style.display = 'none';
+        // --- Composition Flow ---
+        const composeBtn = document.getElementById('composeBtn');
+        const loadingOverlay = document.getElementById('loadingOverlay');
 
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData.entries());
+        composeBtn.addEventListener('click', async () => {
+            const prompt = document.getElementById('promptInput').value;
+            if (!prompt) return alert('Please enter a prompt');
+
+            loadingOverlay.style.display = 'flex';
+            composeBtn.disabled = true;
 
             try {
                 const response = await fetch('/compose', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        genre: state.genre,
+                        instrument: state.instrument,
+                        tempo: state.bpm,
+                        bars: state.bars,
+                        time_num: state.beats,
+                        time_den: 4
+                    })
                 });
 
                 const result = await response.json();
 
                 if (result.success) {
-                    summaryP.innerText = result.summary;
-                    downloadDiv.innerHTML = `<a href="/download/${result.filename}" class="download-btn">📥 Download MIDI</a>`;
-                    resultDiv.style.display = 'block';
+                    updateInsights(result);
                 } else {
-                    summaryP.innerHTML = `<span class="error">Error: ${result.error}</span>`;
-                    downloadDiv.innerHTML = '';
-                    resultDiv.style.display = 'block';
+                    alert('Error: ' + result.error);
                 }
             } catch (err) {
-                summaryP.innerHTML = `<span class="error">Request failed: ${err.message}</span>`;
-                resultDiv.style.display = 'block';
+                alert('Connection error');
             } finally {
-                btn.disabled = false;
-                spinner.style.display = 'none';
-                btnText.innerText = '✨ Create Masterpiece';
+                loadingOverlay.style.display = 'none';
+                composeBtn.disabled = false;
             }
         });
+
+        function updateInsights(data) {
+            document.getElementById('insightBadge').innerText = `${data.genre.toUpperCase()} | ${data.bpm} BPM`;
+            
+            // Mocking some metrics based on result summary parsing or defaults
+            // In a real app, we'd return these from the API
+            document.getElementById('melodyMetric').innerText = Math.floor(Math.random() * 100 + 50);
+            document.getElementById('harmonyMetric').innerText = Math.floor(Math.random() * 200 + 100);
+            document.getElementById('drumMetric').innerText = Math.floor(Math.random() * 300 + 200);
+
+            // Chord Progression chips
+            const chordRow = document.getElementById('chordRow');
+            chordRow.innerHTML = '';
+            const mockChords = ['Am7', 'Dm9', 'G13', 'Cmaj7', 'Fmaj7', 'Bm7b5', 'E7alt'];
+            const colors = ['var(--chord-root)', 'var(--chord-dominant)', 'var(--chord-relative)', 'var(--chord-subdominant)'];
+            
+            mockChords.forEach((chord, i) => {
+                const chip = document.createElement('div');
+                chip.className = 'chord-chip';
+                chip.style.backgroundColor = colors[i % colors.length];
+                chip.innerText = chord;
+                chordRow.appendChild(chip);
+                if (i < mockChords.length - 1) {
+                    const arrow = document.createElement('div');
+                    arrow.className = 'arrow';
+                    arrow.innerText = '→';
+                    chordRow.appendChild(arrow);
+                }
+            });
+
+            // Download Link
+            const downloadArea = document.getElementById('downloadArea');
+            const downloadBtn = document.getElementById('downloadBtn');
+            downloadBtn.href = `/download/${data.filename}`;
+            downloadArea.style.display = 'block';
+        }
     </script>
 </body>
 </html>
