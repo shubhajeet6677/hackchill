@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🎵 AI Music Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8b5cf6;
+            --primary-hover: #7c3aed;
+            --bg: #0f0f1a;
+            --card: rgba(255, 255, 255, 0.08);
+            --card-border: rgba(255, 255, 255, 0.12);
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --accent: #a78bfa;
+            --glow: rgba(139, 92, 246, 0.4);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            position: relative;
+        }
+
+        .wave-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .wave {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(ellipse at center, transparent 0%, var(--bg) 70%);
+        }
+
+        .wave::before,
+        .wave::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 80px,
+                rgba(139, 92, 246, 0.03) 80px,
+                rgba(139, 92, 246, 0.03) 160px
+            );
+            animation: waveMove 20s linear infinite;
+        }
+
+        .wave::after {
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 80px,
+                rgba(167, 139, 250, 0.02) 80px,
+                rgba(167, 139, 250, 0.02) 160px
+            );
+            animation: waveMove 15s linear infinite reverse;
+        }
+
+        @keyframes waveMove {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(2%, 2%) rotate(1deg); }
+            50% { transform: translate(0, 4%) rotate(0deg); }
+            75% { transform: translate(-2%, 2%) rotate(-1deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.5;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 40vw;
+            height: 40vw;
+            max-width: 500px;
+            max-height: 500px;
+            background: #7c3aed;
+            top: -10%;
+            left: -10%;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 35vw;
+            height: 35vw;
+            max-width: 400px;
+            max-height: 400px;
+            background: #4f46e5;
+            bottom: -5%;
+            right: -5%;
+            animation-delay: -4s;
+        }
+
+        .orb-3 {
+            width: 25vw;
+            height: 25vw;
+            max-width: 300px;
+            max-height: 300px;
+            background: #a855f7;
+            top: 40%;
+            left: 55%;
+            animation-delay: -2s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(3vw, -3vw) scale(1.05); }
+            66% { transform: translate(-2vw, 2vw) scale(0.95); }
+        }
+
+        .main-content {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            max-height: 95vh;
+            overflow-y: auto;
+            background: var(--card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            padding: clamp(20px, 4vw, 48px);
+            border-radius: 24px;
+            box-shadow:
+                0 25px 50px -12px rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .container::-webkit-scrollbar-thumb {
+            background: var(--card-border);
+            border-radius: 3px;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: clamp(20px, 4vw, 36px);
+        }
+
+        h1 {
+            font-size: clamp(1.8rem, 6vw, 3.5rem);
+            font-weight: 900;
+            background: linear-gradient(135deg, #a78bfa 0%, #818cf8 50%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 60px var(--glow);
+            margin-bottom: 8px;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: clamp(16px, 3vw, 28px);
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(139, 92, 246, 0.3);
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.1);
+        }
+
+        .form-group { margin-bottom: 16px; }
+        .form-group:last-child { margin-bottom: 0; }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: clamp(0.85rem, 1.5vw, 0.95rem);
+            color: var(--text);
+        }
+
+        .section-title {
+            font-size: clamp(0.7rem, 1.2vw, 0.85rem);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            margin-bottom: 14px;
+            font-weight: 700;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: clamp(10px, 2vw, 14px) clamp(12px, 2vw, 18px);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            font-size: clamp(0.9rem, 1.8vw, 1rem);
+            color: var(--text);
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--glow);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        input[type="text"]::placeholder { color: var(--text-muted); }
+
+        .slider-container { margin-bottom: 16px; }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .slider-header label {
+            margin-bottom: 0;
+        }
+
+        .slider-value {
+            background: var(--primary);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: clamp(0.75rem, 1.2vw, 0.85rem);
+            font-weight: 700;
+            color: white;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: clamp(20px, 3vw, 28px);
+            height: clamp(20px, 3vw, 28px);
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 15px var(--glow);
+            transition: transform 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: clamp(20px, 3vw, 28px);
+            height: clamp(20px, 3vw, 28px);
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 15px var(--glow);
+        }
+
+        .radio-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 8px;
+        }
+
+        .radio-item { position: relative; }
+        .radio-item input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .radio-label {
+            display: block;
+            padding: clamp(8px, 1.5vw, 12px) 4px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: clamp(0.75rem, 1.3vw, 0.9rem);
+            font-weight: 600;
+            transition: all 0.25s ease;
+        }
+
+        .radio-item input:checked + .radio-label {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: var(--primary);
+            color: var(--accent);
+            box-shadow: 0 0 20px var(--glow);
+        }
+
+        .radio-label:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        button {
+            width: 100%;
+            padding: clamp(14px, 2.5vw, 18px);
+            background: linear-gradient(135deg, var(--primary), #7c3aed);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: clamp(1rem, 2vw, 1.15rem);
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 25px -5px var(--glow);
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 40px -10px var(--glow);
+        }
+
+        button:active { transform: translateY(-1px); }
+
+        button:disabled {
+            background: #374151;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #result {
+            margin-top: 24px;
+            padding: clamp(16px, 3vw, 28px);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #result h3 {
+            color: var(--accent);
+            margin-bottom: 10px;
+            font-size: clamp(1rem, 2vw, 1.2rem);
+        }
+
+        #resSummary {
+            color: var(--text-muted);
+            font-size: clamp(0.8rem, 1.5vw, 0.95rem);
+            line-height: 1.7;
+            white-space: pre-wrap;
+            max-height: 40vh;
+            overflow-y: auto;
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .download-btn {
+            display: inline-block;
+            margin-top: 14px;
+            padding: clamp(8px, 1.5vw, 12px) clamp(16px, 3vw, 24px);
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: clamp(0.85rem, 1.5vw, 0.95rem);
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .error { color: #f87171; font-weight: 600; }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        @media (max-width: 600px) {
+            .main-content {
+                padding: 0;
+                align-items: flex-start;
+            }
+
+            .container {
+                max-height: 100vh;
+                border-radius: 0;
+                padding: 20px 16px;
+            }
+
+            .orb { filter: blur(60px); }
+
+            .orb-1 { width: 60vw; height: 60vw; }
+            .orb-2 { width: 50vw; height: 50vw; }
+            .orb-3 { width: 40vw; height: 40vw; }
+        }
+
+        @media (min-width: 1200px) {
+            .container {
+                max-width: 900px;
+                padding: 48px;
+            }
+        }
+
+        @media (min-height: 800px) {
+            .main-content {
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wave-bg">
+        <div class="wave"></div>
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <div class="header">
+                <h1>🎵 Music Studio</h1>
+                <p class="subtitle">AI-powered MIDI composition</p>
+            </div>
+
+            <form id="composeForm">
+                <div class="glass-card">
+                    <div class="form-group">
+                        <label>✨ Describe your music</label>
+                        <input type="text" id="prompt" name="prompt" placeholder="e.g. A melancholic rainy day piano melody..." required>
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <div class="section-title">🎸 Genre</div>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="g-pop" name="genre" value="pop" checked>
+                            <label for="g-pop" class="radio-label">Pop</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="g-jazz" name="genre" value="jazz">
+                            <label for="g-jazz" class="radio-label">Jazz</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="g-classical" name="genre" value="classical">
+                            <label for="g-classical" class="radio-label">Classical</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="g-ambient" name="genre" value="ambient">
+                            <label for="g-ambient" class="radio-label">Ambient</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="g-electronic" name="genre" value="electronic">
+                            <label for="g-electronic" class="radio-label">Electronic</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="g-folk" name="genre" value="folk">
+                            <label for="g-folk" class="radio-label">Folk</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <div class="section-title">🎹 Instrument</div>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="i-piano" name="instrument" value="piano" checked>
+                            <label for="i-piano" class="radio-label">Piano</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="i-guitar" name="instrument" value="guitar">
+                            <label for="i-guitar" class="radio-label">Guitar</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="i-synth" name="instrument" value="synth">
+                            <label for="i-synth" class="radio-label">Synth</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="i-strings" name="instrument" value="strings">
+                            <label for="i-strings" class="radio-label">Strings</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="i-brass" name="instrument" value="brass">
+                            <label for="i-brass" class="radio-label">Brass</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <div class="section-title">⚙️ Settings</div>
+
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <label for="tempo">Tempo (BPM)</label>
+                            <span class="slider-value" id="tempoVal">120</span>
+                        </div>
+                        <input type="range" id="tempo" name="tempo" min="60" max="200" value="120" step="5">
+                    </div>
+
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <label for="bars">Length (Bars)</label>
+                            <span class="slider-value" id="barsVal">8</span>
+                        </div>
+                        <input type="range" id="bars" name="bars" min="4" max="32" value="8" step="4">
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="slider-container">
+                            <div class="slider-header">
+                                <label for="time_num">Beats/Bar</label>
+                                <span class="slider-value" id="timeNumVal">4</span>
+                            </div>
+                            <input type="range" id="time_num" name="time_num" min="2" max="7" value="4" step="1">
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-header">
+                                <label for="time_den">Beat Value</label>
+                                <span class="slider-value" id="timeDenVal">4</span>
+                            </div>
+                            <input type="range" id="time_den" name="time_den" min="4" max="8" value="4" step="4">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn">
+                    <span class="loading-spinner" id="spinner"></span>
+                    <span id="btnText">✨ Create Masterpiece</span>
+                </button>
+            </form>
+
+            <div id="result">
+                <h3>🎼 Composition Ready</h3>
+                <p id="resSummary"></p>
+                <div id="downloadLink"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tempoSlider = document.getElementById('tempo');
+        const tempoVal = document.getElementById('tempoVal');
+        tempoSlider.addEventListener('input', () => { tempoVal.innerText = tempoSlider.value; });
+
+        const barsSlider = document.getElementById('bars');
+        const barsVal = document.getElementById('barsVal');
+        barsSlider.addEventListener('input', () => { barsVal.innerText = barsSlider.value; });
+
+        const timeNumSlider = document.getElementById('time_num');
+        const timeNumVal = document.getElementById('timeNumVal');
+        timeNumSlider.addEventListener('input', () => { timeNumVal.innerText = timeNumSlider.value; });
+
+        const timeDenSlider = document.getElementById('time_den');
+        const timeDenVal = document.getElementById('timeDenVal');
+        timeDenSlider.addEventListener('input', () => { timeDenVal.innerText = timeDenSlider.value; });
+
+        document.getElementById('composeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const btn = document.getElementById('submitBtn');
+            const spinner = document.getElementById('spinner');
+            const btnText = document.getElementById('btnText');
+            const resultDiv = document.getElementById('result');
+            const summaryP = document.getElementById('resSummary');
+            const downloadDiv = document.getElementById('downloadLink');
+
+            btn.disabled = true;
+            spinner.style.display = 'block';
+            btnText.innerText = 'Composing...';
+            resultDiv.style.display = 'none';
+
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch('/compose', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    summaryP.innerText = result.summary;
+                    downloadDiv.innerHTML = `<a href="/download/${result.filename}" class="download-btn">📥 Download MIDI</a>`;
+                    resultDiv.style.display = 'block';
+                } else {
+                    summaryP.innerHTML = `<span class="error">Error: ${result.error}</span>`;
+                    downloadDiv.innerHTML = '';
+                    resultDiv.style.display = 'block';
+                }
+            } catch (err) {
+                summaryP.innerHTML = `<span class="error">Request failed: ${err.message}</span>`;
+                resultDiv.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                spinner.style.display = 'none';
+                btnText.innerText = '✨ Create Masterpiece';
+            }
+        });
+    </script>
+</body>
+</html>
