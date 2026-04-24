@@ -75,6 +75,7 @@ def make_initial_state(
     num_bars: int = 8,
     time_signature: tuple = (4, 4),
     instrument: str = "piano",
+    ai_mode: bool = True,
 ) -> MusicState:
     return MusicState(
         prompt=prompt,
@@ -83,6 +84,7 @@ def make_initial_state(
         num_bars=num_bars,
         time_signature=time_signature,
         instrument=instrument,
+        ai_mode=ai_mode,
         # Fields to be populated by nodes:
         mood="",
         scale="",

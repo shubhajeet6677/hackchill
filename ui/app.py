@@ -8,6 +8,10 @@ LangGraph music composition pipeline.
 import sys
 import os
 from flask import Flask, render_template, request, jsonify, send_from_directory
+from dotenv import load_dotenv
+
+# Load environment variables early
+load_dotenv()
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -32,9 +36,18 @@ def compose():
     genre = data.get('genre', 'pop')
     instrument = data.get('instrument', 'piano')
     tempo = int(data.get('tempo', 120))
+    duration = int(data.get('duration', 20))
     num_bars = int(data.get('bars', 8))
-    time_sig_num = int(data.get('time_num', 4))
-    time_sig_denom = int(data.get('time_den', 4))
+    time_num = int(data.get('time_num', 4))
+    time_den = int(data.get('time_den', 4))
+    ai_mode = bool(data.get('ai_mode', True))
+    
+    if duration and tempo:
+        seconds_per_beat = 60 / tempo
+        beats_per_bar = time_num
+        seconds_per_bar = seconds_per_beat * beats_per_bar
+        if seconds_per_bar > 0:
+            num_bars = max(4, min(64, int(duration / seconds_per_bar)))
 
     try:
         graph = build_graph()
@@ -43,8 +56,9 @@ def compose():
             genre=genre,
             tempo=int(tempo),
             num_bars=int(num_bars),
-            time_signature=(int(time_sig_num), int(time_sig_denom)),
+            time_signature=(int(time_num), int(time_den)),
             instrument=instrument,
+            ai_mode=ai_mode
         )
         result = graph.invoke(state)
         
@@ -81,19 +95,17 @@ def compose():
 
 @app.route('/download/<filename>')
 def download(filename):
-    # We need to know where the graph saves MIDI files. 
-    # Usually it's in an 'output' folder in the root or a temp dir.
-    # Let's check common locations.
-    possible_dirs = [
-        os.path.join(os.getcwd(), 'output'),
-        os.getcwd(),
-        os.path.dirname(os.path.abspath(__file__))
-    ]
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    output_dir = os.path.join(project_root, 'output')
+    file_path = os.path.join(output_dir, filename)
     
-    for d in possible_dirs:
-        if os.path.exists(os.path.join(d, filename)):
-            return send_from_directory(d, filename, as_attachment=True)
-            
+    if os.path.exists(file_path):
+        return send_from_directory(output_dir, filename, as_attachment=True)
+    
+    root_file_path = os.path.join(project_root, filename)
+    if os.path.exists(root_file_path):
+        return send_from_directory(project_root, filename, as_attachment=True)
+        
     return "File not found", 404
 
 if __name__ == "__main__":

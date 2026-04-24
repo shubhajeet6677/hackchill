@@ -34,7 +34,6 @@
             flex-direction: column;
         }
 
-        /* --- Top Navigation --- */
         nav {
             height: var(--nav-height);
             border-bottom: 0.5px solid var(--border-color);
@@ -77,14 +76,12 @@
             border: 2px solid var(--border-color);
         }
 
-        /* --- Main Layout --- */
         .app-container {
             flex: 1;
             display: flex;
             overflow: hidden;
         }
 
-        /* --- Sidebar --- */
         aside {
             width: var(--sidebar-width);
             border-right: 0.5px solid var(--border-color);
@@ -104,7 +101,6 @@
             text-transform: uppercase;
         }
 
-        /* Sliders */
         .slider-group { display: flex; flex-direction: column; gap: 12px; }
         .slider-header { display: flex; justify-content: space-between; align-items: center; }
         .slider-header label { font-size: 0.85rem; font-weight: 500; }
@@ -128,7 +124,6 @@
             border: 2px solid var(--bg-color);
         }
 
-        /* Chip Grids */
         .chip-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -151,7 +146,6 @@
             color: var(--accent-color);
         }
 
-        /* --- Main Content --- */
         main {
             flex: 1;
             padding: 24px;
@@ -160,6 +154,9 @@
             flex-direction: column;
             gap: 24px;
         }
+
+        .tab-content { display: none; flex-direction: column; gap: 24px; }
+        .tab-content.active { display: flex; }
 
         .card {
             background: var(--card-bg);
@@ -182,7 +179,6 @@
         }
         .card-label span { color: var(--accent-color); }
 
-        /* Prompt Card */
         textarea {
             width: 100%;
             height: 100px;
@@ -219,7 +215,6 @@
         .cta-button:active { transform: translateY(0); }
         .cta-button:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* Insights Card */
         .insights-header { display: flex; justify-content: space-between; align-items: center; }
         .insights-title { font-weight: 700; font-size: 1.1rem; }
         .badge-pill {
@@ -263,7 +258,6 @@
         }
         .arrow { color: var(--text-muted); font-size: 0.8rem; }
 
-        /* Waveform */
         .waveform {
             height: 60px;
             display: flex;
@@ -278,7 +272,21 @@
         }
         .wave-bar.active { background: var(--accent-color); box-shadow: 0 0 10px var(--accent-color); }
 
-        /* --- Loading Overlay --- */
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: var(--accent-gradient);
+            color: var(--bg-color);
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: transform 0.2s;
+        }
+        .download-btn:hover { transform: scale(1.02); }
+
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(10, 13, 26, 0.8);
@@ -294,7 +302,71 @@
         }
         @keyframes rotation { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        /* --- Responsive --- */
+        /* Tab Pages */
+        .page-header {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        .page-desc {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+        .placeholder-card {
+            background: var(--card-bg);
+            border: 0.5px solid var(--border-color);
+            border-radius: 16px;
+            padding: 48px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+        .placeholder-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+/* --- Toggle Switch --- */
+        .toggle-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 232, 123, 0.05);
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 0.5px solid rgba(0, 232, 123, 0.2);
+            margin-bottom: 24px;
+        }
+        .toggle-label { font-size: 0.85rem; font-weight: 700; color: var(--accent-color); }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider-toggle {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255,255,255,0.1);
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider-toggle:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider-toggle { background-color: var(--accent-color); }
+        input:checked + .slider-toggle:before { transform: translateX(20px); }
+
         @media (max-width: 900px) {
             aside { display: none; }
             .nav-center { display: none; }
@@ -312,10 +384,10 @@
             <div class="logo-text">SONIC.AI<span>/ Music Studio</span></div>
         </div>
         <div class="nav-center">
-            <div class="nav-tab active">Compose</div>
-            <div class="nav-tab">Library</div>
-            <div class="nav-tab">Mixer</div>
-            <div class="nav-tab">Export</div>
+            <div class="nav-tab active" data-tab="compose">Compose</div>
+            <div class="nav-tab" data-tab="library">Library</div>
+            <div class="nav-tab" data-tab="mixer">Mixer</div>
+            <div class="nav-tab" data-tab="export">Export</div>
         </div>
         <div class="nav-right">
             <div class="user-avatar"></div>
@@ -323,7 +395,15 @@
     </nav>
 
     <div class="app-container">
-        <aside>
+        <aside id="settingsPanel">
+            <div class="toggle-group">
+                <span class="toggle-label">AI ENGINE MODE</span>
+                <label class="switch">
+                    <input type="checkbox" id="aiModeToggle" checked>
+                    <span class="slider-toggle"></span>
+                </label>
+            </div>
+            
             <div class="sidebar-section">
                 <div class="section-label">Tempo & Timing</div>
                 <div class="slider-group">
@@ -339,6 +419,14 @@
                         <span class="slider-value" id="barsVal">8</span>
                     </div>
                     <input type="range" id="barsSlider" min="4" max="32" value="8" step="4">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <label>Duration (sec)</label>
+                        <span class="slider-value" id="durationVal">20</span>
+                    </div>
+                    <input type="range" id="durationSlider" min="10" max="120" value="20" step="5">
                 </div>
                 <div class="slider-group">
                     <div class="slider-header">
@@ -373,57 +461,126 @@
         </aside>
 
         <main>
-            <div class="card">
-                <div class="card-label"><span>✦</span> Composition Prompt</div>
-                <textarea id="promptInput" placeholder="Describe the energy, mood, and instruments of your piece..."></textarea>
-                <button class="cta-button" id="composeBtn">✦ Compose Masterpiece</button>
+            <!-- Compose Tab -->
+            <div id="compose-tab" class="tab-content active">
+                <div class="card">
+                    <div class="card-label"><span>✦</span> Composition Prompt</div>
+                    <textarea id="promptInput" placeholder="Describe the energy, mood, and instruments of your piece..."></textarea>
+                    <button class="cta-button" id="composeBtn">✦ Compose Masterpiece</button>
+                </div>
+
+                <div class="card" id="insightsCard">
+                    <div class="insights-header">
+                        <div class="insights-title">Composition Insights</div>
+                        <div class="badge-pill" id="insightBadge">READY</div>
+                    </div>
+
+                    <div class="metrics-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Melody notes</div>
+                            <div class="stat-value" id="melodyMetric">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Harmony notes</div>
+                            <div class="stat-value" id="harmonyMetric">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Drum events</div>
+                            <div class="stat-value" id="drumMetric">0</div>
+                        </div>
+                    </div>
+
+                    <div class="chord-row" id="chordRow"></div>
+
+                    <div class="waveform" id="waveform"></div>
+
+                    <div id="downloadArea" style="display: none;">
+                        <a id="downloadBtn" href="#" class="download-btn">📥 Download MIDI File</a>
+                    </div>
+                </div>
             </div>
 
-            <div class="card" id="insightsCard">
-                <div class="insights-header">
-                    <div class="insights-title">Composition Insights</div>
-                    <div class="badge-pill" id="insightBadge">READY</div>
+            <!-- Library Tab -->
+            <div id="library-tab" class="tab-content">
+                <h2 class="page-header">📚 Music Library</h2>
+                <p class="page-desc">Your composed masterpieces stored locally</p>
+                <div class="placeholder-card">
+                    <div class="placeholder-icon">📂</div>
+                    <p>Composed MIDI files will appear here</p>
                 </div>
+            </div>
 
-                <div class="metrics-grid">
-                    <div class="stat-card">
-                        <div class="stat-label">Melody notes</div>
-                        <div class="stat-value" id="melodyMetric">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Harmony notes</div>
-                        <div class="stat-value" id="harmonyMetric">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Drum events</div>
-                        <div class="stat-value" id="drumMetric">0</div>
-                    </div>
+            <!-- Mixer Tab -->
+            <div id="mixer-tab" class="tab-content">
+                <h2 class="page-header">🎚️ Audio Mixer</h2>
+                <p class="page-desc">Fine-tune your tracks with precision controls</p>
+                <div class="placeholder-card">
+                    <div class="placeholder-icon">🎛️</div>
+                    <p>Mixer controls for volume, pan, and effects</p>
                 </div>
+            </div>
 
-                <div class="chord-row" id="chordRow">
-                    <!-- Chords will appear here -->
-                </div>
-
-                <div class="waveform" id="waveform">
-                    <!-- Bars will appear here -->
-                </div>
-
-                <div id="downloadArea" style="display: none; margin-top: 10px;">
-                    <a id="downloadBtn" href="#" class="download-btn">📥 Download MIDI File</a>
+            <!-- Export Tab -->
+            <div id="export-tab" class="tab-content">
+                <h2 class="page-header">📤 Export Studio</h2>
+                <p class="page-desc">Render and export your compositions</p>
+                <div class="placeholder-card">
+                    <div class="placeholder-icon">🎛️</div>
+                    <p>Export options for WAV, MP3, and MIDI</p>
                 </div>
             </div>
         </main>
     </div>
 
     <script>
+        // --- Tab Navigation ---
+        const navTabs = document.querySelectorAll('.nav-tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const settingsPanel = document.getElementById('settingsPanel');
+
+        navTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.dataset.tab;
+                
+                navTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === `${tabId}-tab`) {
+                        content.classList.add('active');
+                    }
+                });
+
+                if (tabId === 'compose') {
+                    settingsPanel.style.display = 'flex';
+                } else {
+                    settingsPanel.style.display = 'none';
+                }
+            });
+        });
+
         // --- State Management ---
         let state = {
             bpm: 120,
             bars: 8,
             beats: 4,
+            duration: 20,
             genre: 'pop',
-            instrument: 'piano'
+            instrument: 'piano',
+            ai_mode: true
         };
+
+        const aiModeToggle = document.getElementById('aiModeToggle');
+        aiModeToggle.addEventListener('change', () => {
+            state.ai_mode = aiModeToggle.checked;
+            console.log("AI Mode:", state.ai_mode);
+        });
+
+        // --- Duration Slider ---
+        const durationSlider = document.getElementById('durationSlider');
+        const durationVal = document.getElementById('durationVal');
+        durationSlider.oninput = () => { state.duration = durationSlider.value; durationVal.innerText = state.duration; };
 
         // --- UI Interactions ---
         const bpmSlider = document.getElementById('bpmSlider');
@@ -492,8 +649,10 @@
                         instrument: state.instrument,
                         tempo: state.bpm,
                         bars: state.bars,
+                        duration: state.duration,
                         time_num: state.beats,
-                        time_den: 4
+                        time_den: 4,
+                        ai_mode: state.ai_mode
                     })
                 });
 
@@ -505,7 +664,7 @@
                     alert('Error: ' + result.error);
                 }
             } catch (err) {
-                alert('Connection error');
+                alert('Connection error: ' + err.message);
             } finally {
                 loadingOverlay.style.display = 'none';
                 composeBtn.disabled = false;
@@ -515,13 +674,10 @@
         function updateInsights(data) {
             document.getElementById('insightBadge').innerText = `${data.genre.toUpperCase()} | ${data.bpm} BPM`;
             
-            // Mocking some metrics based on result summary parsing or defaults
-            // In a real app, we'd return these from the API
             document.getElementById('melodyMetric').innerText = Math.floor(Math.random() * 100 + 50);
             document.getElementById('harmonyMetric').innerText = Math.floor(Math.random() * 200 + 100);
             document.getElementById('drumMetric').innerText = Math.floor(Math.random() * 300 + 200);
 
-            // Chord Progression chips
             const chordRow = document.getElementById('chordRow');
             chordRow.innerHTML = '';
             const mockChords = ['Am7', 'Dm9', 'G13', 'Cmaj7', 'Fmaj7', 'Bm7b5', 'E7alt'];
@@ -541,7 +697,6 @@
                 }
             });
 
-            // Download Link
             const downloadArea = document.getElementById('downloadArea');
             const downloadBtn = document.getElementById('downloadBtn');
             downloadBtn.href = `/download/${data.filename}`;

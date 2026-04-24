@@ -8,12 +8,17 @@ No LLM needed — uses Markov-like weighted transitions within the scale,
 shaped by a phrase contour model (rise -> peak -> fall -> rest).
 """
 
+import os
 import random
+import json
 import numpy as np
 from typing import List, Dict, Any
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import SystemMessage, HumanMessage
 
 from core.state import MusicState
 from core.music_theory import get_scale_notes, swing_offset, MOOD_PROFILES
+
 
 
 # Duration values in beats
@@ -70,7 +75,8 @@ def _phrase_contour(bar_idx: int, num_bars: int) -> str:
 
 def melody_generator_node(state: MusicState) -> MusicState:
     """
-    LangGraph node: generates melody_notes from style params.
+    LangGraph node: generates melody_notes. Uses LLM for creative phrasing 
+    if ai_mode is True and API key is available, otherwise uses probabilistic contour logic.
     """
     root_note = state.get("root_note", "C")
     scale_name = state.get("scale", "C_major")
@@ -80,12 +86,72 @@ def melody_generator_node(state: MusicState) -> MusicState:
     time_sig = state.get("time_signature", (4, 4))
     beats_per_bar = time_sig[0]
     groove = state.get("groove", "straight")
+    ai_mode = state.get("ai_mode", True)
 
     mood_profile = state["style_params"]["mood_profile"]
     vel_min, vel_max = state["style_params"]["velocity_range"]
     density = state["style_params"]["note_density"]
     preferred_octave = state["style_params"]["preferred_octave"]
 
+    api_key = os.getenv("OPENAI_API_KEY")
+    model_name = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+
+    if ai_mode and api_key and "your_api_key_here" not in api_key:
+        try:
+            llm = ChatOpenAI(api_key=api_key, model=model_name, temperature=0.8)
+            
+            system_msg = f"""You are a creative musical composer.
+            Generate a melodic sequence for a {state.get('mood')} {state.get('genre')} piece.
+            Scale: {scale_name}. Total bars: {num_bars}. Beats per bar: {beats_per_bar}.
+            
+            Return a JSON list of notes, where each note is:
+            {{
+                "pitch_offset": <int, semitones from root note, e.g. 0, 2, 4, 7>,
+                "start_beat": <float, absolute beat number starting from 0.0>,
+                "duration": <float, 0.25, 0.5, 1.0, etc.>,
+                "velocity": <int, 60-110>
+            }}
+            
+            Keep the melody within {num_bars} bars. Focus on catchy, singable motifs.
+            """
+            
+            response = llm.invoke([
+                SystemMessage(content=system_msg),
+                HumanMessage(content=f"Create a melody based on this prompt: {state.get('prompt')}")
+            ])
+            
+            content = response.content.strip()
+            if "```json" in content:
+                content = content.split("```json")[1].split("```")[0].strip()
+            elif "```" in content:
+                content = content.split("```")[1].split("```")[0].strip()
+                
+            ai_notes = json.loads(content)
+            
+            from core.music_theory import note_name_to_midi
+            root_midi = note_name_to_midi(root_note, preferred_octave)
+            
+            notes = []
+            for n in ai_notes:
+                # Ensure it doesn't exceed total beats
+                if n["start_beat"] >= num_bars * beats_per_bar:
+                    continue
+                    
+                notes.append({
+                    "pitch": root_midi + n["pitch_offset"],
+                    "start_beat": float(n["start_beat"]),
+                    "duration": float(n["duration"]),
+                    "velocity": int(n["velocity"]),
+                    "track": "melody",
+                })
+            
+            print(f"[MelodyGenerator AI] Generated {len(notes)} creative notes.")
+            return {**state, "melody_notes": notes}
+
+        except Exception as e:
+            print(f"[MelodyGenerator AI Error] Falling back to probabilistic logic: {e}")
+
+    # --- FALLBACK PROBABILISTIC LOGIC ---
     # Build scale pitches across 2 octaves
     scale_pitches = get_scale_notes(root_note, scale_type,
                                     octave=preferred_octave, num_octaves=2)

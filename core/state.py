@@ -14,6 +14,7 @@ class MusicState(TypedDict):
     num_bars: int                        # length in bars
     time_signature: tuple                # e.g. (4, 4)
     instrument: str                      # e.g. "piano", "guitar"
+    ai_mode: bool                        # True for LLM-driven, False for rule-based
 
     # ── Style Analysis ─────────────────────────────────────────────────────
     mood: str                            # derived from prompt: "happy", "sad", etc.
